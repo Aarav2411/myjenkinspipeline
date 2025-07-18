@@ -2,31 +2,38 @@
 
 pipeline {
     agent any
-    tools {
-        nodejs 'node-8.1.3'
+
+    environment {
+        // Set NODE_HOME only if needed. Optional.
+        PATH = "/usr/local/bin:$PATH"
     }
+
     stages {
         stage('Build') {
             steps {
-                sh 'nodejs --version'
+                echo 'Starting Build...'
+                sh 'node --version'
                 sh 'npm install'
-                sh 'gulp lint'
+                sh 'npx gulp lint'  // Use npx if gulp is in node_modules
             }
         }
+
         stage('Test') {
             steps {
-                sh 'nodejs --version'
-                sh 'gulp test'
+                echo 'Starting Test...'
+                sh 'node --version'
+                sh 'npx gulp test'  // Use npx if gulp is not globally installed
             }
         }
     }
+
     post {
         always {
             echo 'One way or another, I have finished'
-            deleteDir() /* clean up our workspace */
+            deleteDir() // clean up workspace
         }
         success {
-            echo 'I succeeeded!'
+            echo 'I succeeded!'
         }
         unstable {
             echo 'I am unstable :/'
