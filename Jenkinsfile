@@ -1,46 +1,27 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'node-18'  // Make sure you’ve installed this NodeJS version in Jenkins tools
+    }
+
     stages {
-        stage('Setup Node.js') {
+        stage('Checkout Code') {
             steps {
-                sh '''
-                    echo "Installing NVM and Node.js"
-                    export NVM_DIR="$WORKSPACE/.nvm"
-                    mkdir -p "$NVM_DIR"  # ✅ FIX: Ensure directory exists
-                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                    nvm install 14
-                    nvm use 14
-                    node -v
-                    npm -v
-                '''
+                git 'https://github.com/Aarav2411/jenkins-pipeline-example.git'
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Test') {
+        stage('Run App') {
             steps {
-                sh 'npm test'
+                sh 'node app.js'
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Cleaning up workspace...'
-            deleteDir()
-        }
-        failure {
-            echo '❌ Build failed!'
-        }
-        success {
-            echo '✅ Build succeeded!'
         }
     }
 }
