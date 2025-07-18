@@ -1,48 +1,59 @@
-#!/usr/bin/env groovy
-
 pipeline {
     agent any
-
     environment {
-        // Set NODE_HOME only if needed. Optional.
-        PATH = "/usr/local/bin:$PATH"
+        NODE_VERSION = "10.24.1"
+        NVM_DIR = "${WORKSPACE}/.nvm"
     }
-
     stages {
+        stage('Setup Node.js') {
+            steps {
+                sh '''
+                    echo "Installing NVM and Node.js"
+                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                    export NVM_DIR="${NVM_DIR}"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm install $NODE_VERSION
+                    nvm use $NODE_VERSION
+                    node -v
+                    npm -v
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
-                echo 'Starting Build...'
-                sh 'node --version'
-                sh 'npm install'
-                sh 'npx gulp lint'  // Use npx if gulp is in node_modules
+                sh '''
+                    export NVM_DIR="${NVM_DIR}"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm use $NODE_VERSION
+                    npm install
+                    gulp lint
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Starting Test...'
-                sh 'node --version'
-                sh 'npx gulp test'  // Use npx if gulp is not globally installed
+                sh '''
+                    export NVM_DIR="${NVM_DIR}"
+                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                    nvm use $NODE_VERSION
+                    gulp test
+                '''
             }
         }
     }
 
     post {
         always {
-            echo 'One way or another, I have finished'
-            deleteDir() // clean up workspace
+            echo 'Cleaning up workspace...'
+            deleteDir()
         }
         success {
-            echo 'I succeeded!'
-        }
-        unstable {
-            echo 'I am unstable :/'
+            echo '✅ Build succeeded!'
         }
         failure {
-            echo 'I failed :('
-        }
-        changed {
-            echo 'Things were different before...'
+            echo '❌ Build failed!'
         }
     }
 }
