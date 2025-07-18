@@ -1,1 +1,1 @@
-console.log("Hello from Jenkins CI pipeline using Node.js!");
+console.log("Hello from Node.js via Jenkins Pipeline!");
