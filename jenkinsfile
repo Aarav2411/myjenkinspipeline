@@ -1,50 +1,21 @@
 pipeline {
     agent any
+
     tools {
-        nodejs 'node-8.1.3'
+        nodejs 'node-18'  // Name must match the Node.js config in Jenkins
     }
-    environment {
-        NVM_DIR = "$HOME/.nvm"
-    }
+
     stages {
-        stage('Build') {
+        stage('Clone Repo') {
             steps {
-                sh '''#!/bin/bash
-                export NVM_DIR="$HOME/.nvm"
-                [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-                node -v
-                npm install
-                gulp lint
-                '''
+                git 'https://github.com/Aarav2411/jenkins-pipeline-example.git'
             }
         }
-        stage('Test') {
+
+        stage('Run App') {
             steps {
-                sh '''#!/bin/bash
-                export NVM_DIR="$HOME/.nvm"
-                [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
-                node -v
-                gulp test
-                '''
+                sh 'node app.js'
             }
-        }
-    }
-    post {
-        always {
-            echo 'One way or another, I have finished'
-            deleteDir()
-        }
-        success {
-            echo 'I succeeded!'
-        }
-        unstable {
-            echo 'I am unstable :/'
-        }
-        failure {
-            echo 'I failed :('
-        }
-        changed {
-            echo 'Things were different before...'
         }
     }
 }
